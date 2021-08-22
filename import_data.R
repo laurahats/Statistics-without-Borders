@@ -11,24 +11,89 @@ setwd("~/SWB Projects/Chicago 400 Alliance/IL Prision Population")
 files <- (Sys.glob("*.xls"))
 
 listOfFiles <- lapply(files, function(x) 
-  read_excel(path=x,skip=5,trim_ws=TRUE,col_names=TRUE,
+  read_excel(path=x,skip=6,trim_ws=TRUE,
              col_types=c("text","text", "date", "text", "text", "text", "date",
                          "text", "text", "date", "date", "date", "date",
                          "text", "text", "text", "text", "text", "text"),
-             ))
+             col_names=c("IDOC","Name","DOB","Sex","Race","Vetern Status",
+                         "Current Admission Date","Admission Type","Parent Institution",
+                         "Projected Mandatory Supervised Release (MSR) Date",
+                         "Projected Discharge Date","Custody Date","Sentence Date",
+                         "Crime Class","Holding Offense","Sentence Years","Sentence Months",
+                         "Truth in Sentencing","Sentencing County")
+  ))
 
 
 df <- bind_rows(listOfFiles, .id = "id")
 
+                      
+setwd("~/SWB Projects/Chicago 400 Alliance/IL Prision Population/otherdateformat")
+
+files2 <- (Sys.glob("*.xls"))
+
+listOfFiles2 <- lapply(files2, function(x) 
+  read_excel(path=x,skip=5,trim_ws=TRUE,
+             col_types=c("text","text", "text", "text", "text", "text", "text",
+                         "text", "text", "text", "text", "text", "text",
+                         "text", "text", "text", "text", "text", "text"),
+             col_names=c("IDOC","Name","DOB","Sex","Race","Vetern Status",
+                         "Current Admission Date","Admission Type","Parent Institution",
+                         "Projected Mandatory Supervised Release (MSR) Date",
+                         "Projected Discharge Date","Custody Date","Sentence Date",
+                         "Crime Class","Holding Offense","Sentence Years","Sentence Months",
+                         "Truth in Sentencing","Sentencing County")
+  ))
+
+df2 <- bind_rows(listOfFiles2, .id = "id")
+
+df2$'DOB' <- as.Date(df2$'DOB',"%m%d%y")
+df2$`Current Admission Date` <- as.Date(df2$`Current Admission Date`,"%m%d%y")
+df2$`Projected Mandatory Supervised Release (MSR) Date` <- as.Date(df2$`Projected Mandatory Supervised Release (MSR) Date`,"%m%d%y")
+df2$`Projected Discharge Date` <- as.Date(df2$`Projected Discharge Date`,"%m%d%y")
+df2$`Custody Date` <- as.Date(df2$`Custody Date`,"%m%d%y")
+df2$`Sentence Date` <- as.Date(df2$`Sentence Date`,"%m%d%y")
+
+
+
+#this needs work, skip for now
+setwd("~/SWB Projects/Chicago 400 Alliance/IL Prision Population/otherdateformat3")
+
+files3 <- (Sys.glob("*.xls"))
+
+listOfFiles3 <- lapply(files3, function(x) 
+  read_excel(path=x,skip=5,trim_ws=TRUE,col_names=TRUE,
+             col_types=c("text","text", "text", "text", "text", "text", "text",
+                         "text", "text", "text", "text", "text", "text",
+                         "text", "text", "text", "text", "text", "text"),
+  ))
+
+df3 <- bind_rows(listOfFiles3, .id = "id")
+
+df3$'Date of Birth' <- as.Date(df3$'Date of Birth',"%m%d%y")
+df3$`Current Admission Date` <- as.Date(df3$`Current Admission Date`,"%m%d%y")
+df3$`Projected Mandatory Supervised Release (MSR) Date2` <- as.Date(df3$`Projected Mandatory Supervised Release (MSR) Date2`,"%m%d%y")
+df3$`Projected Discharge  Date2` <- as.Date(df3$`Projected Discharge  Date2`,"%m%d%y")
+df3$`Custody Date` <- as.Date(df3$`Custody Date`,"%m%d%y")
+df3$`Sentence Date` <- as.Date(df3$`Sentence Date`,"%m%d%y")
+
+
+
+fulldf <- bind_rows(df,df2)            
+                      
+                      
 #some will be in multiple files, get rid of complete duplicates(all values dup)
-prison <- df %>% select(-id) %>%
+prison <- fulldf %>% select(-id) %>%
                  distinct()
 
 prison2 <- prison %>% 
           group_by(Name, "Date of Birth", Sex, Race) %>%
           mutate(count=n()) %>%
           select(count,everything())
-                      
+         
+#need to write code on deduping based on Name, DOB, Sex, and Race
+prison3 <- prison2 %>%  distinct(Name, DOB, Sex, Race)
+
+
 prison3 <- prison2 %>% filter(count>2 & Name=="JONES, ROBERT")
 
 View(prison3)                     

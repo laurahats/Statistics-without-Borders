@@ -46,12 +46,12 @@ listOfFiles2 <- lapply(files2, function(x)
 
 df2 <- bind_rows(listOfFiles2, .id = "id")
 
-df2$'DOB' <- as.Date(df2$'DOB',"%m%d%y")
-df2$`Current Admission Date` <- as.Date(df2$`Current Admission Date`,"%m%d%y")
-df2$`Projected Mandatory Supervised Release (MSR) Date` <- as.Date(df2$`Projected Mandatory Supervised Release (MSR) Date`,"%m%d%y")
-df2$`Projected Discharge Date` <- as.Date(df2$`Projected Discharge Date`,"%m%d%y")
-df2$`Custody Date` <- as.Date(df2$`Custody Date`,"%m%d%y")
-df2$`Sentence Date` <- as.Date(df2$`Sentence Date`,"%m%d%y")
+df2$'DOB' <- mdy(df2$'DOB')
+df2$`Current Admission Date` <- mdy(df2$`Current Admission Date`)
+df2$`Projected Mandatory Supervised Release (MSR) Date` <- mdy(df2$`Projected Mandatory Supervised Release (MSR) Date`)
+df2$`Projected Discharge Date` <- mdy(df2$`Projected Discharge Date`)
+df2$`Custody Date` <- mdy(df2$`Custody Date`)
+df2$`Sentence Date` <- mdy(df2$`Sentence Date`)
 
 
 
@@ -81,22 +81,20 @@ df3$`Sentence Date` <- as.Date(df3$`Sentence Date`,"%m%d%y")
 fulldf <- bind_rows(df,df2)            
                       
                       
-#some will be in multiple files, get rid of complete duplicates(all values dup)
-prison <- fulldf %>% select(-id) %>%
-                 distinct()
+#some will be in multiple files, get rid of duplicates by the identifiers
+prison <- fulldf %>% select(-id) %>% 
+              distinct(Name, DOB, Sex, Race)
 
 prison2 <- prison %>% 
-          group_by(Name, "Date of Birth", Sex, Race) %>%
+          group_by(Name, DOB, Sex, Race) %>%
           mutate(count=n()) %>%
           select(count,everything())
          
-#need to write code on deduping based on Name, DOB, Sex, and Race
-prison3 <- prison2 %>%  distinct(Name, DOB, Sex, Race)
+prison3 <- prison2 %>% filter(count>2)
 
-
-prison3 <- prison2 %>% filter(count>2 & Name=="JONES, ROBERT")
-
-View(prison3)                     
+prison4 <- prison2 %>% filter(Name=="ADAMS, ROBERT")
+                       
+View(prison4)                     
                  
                       
                       
